@@ -85,6 +85,11 @@ node deploy-single.cjs <TOKEN> portfolio main
 用 Git Data API（`git/trees` + `git/commits` + `git/refs`）一次提交整棵树，
 绕开 git over HTTPS 的代理阻断。脚本会自动开启 Pages、等待构建并做线上验证。
 
-> 注意：上传内容必须用 `fs.readFileSync(file, "utf8").toString("base64")`。
-> 直接对 Buffer 调 `.toString("base64")` 会让 GitHub 把结果再当文本 base64 编一次，
-> 线上页面变成一堆 base64 乱码。
+> **编码约定（踩过坑）**：
+> - `git/trees` 的 `content` 字段要**纯文本** → `fs.readFileSync(file, "utf8")`
+> - Contents API 的 `content` 字段要 **base64** → `Buffer.from(text, "utf8").toString("base64")`
+> - 在字符串上写 `.toString("base64")` 是 **no-op**，看着像编码其实没编码，别这么写
+>
+> 若给 `git/trees` 传了 base64，GitHub 会把那串字符当文件内容原样存下：
+> API 返回 200、Pages 显示 built、curl 状态码 200 全部正常，但浏览器打开是一整段
+> base64 乱码。部署后务必用 `check-not-base64.cjs` 或 `curl ... | head -c 20` 验内容。
