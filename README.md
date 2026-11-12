@@ -1,95 +1,110 @@
-# 个人作品集 · 单文件版
+# 个人作品集 · 一页全量 + 二级详情
 
-面向面试官与潜在客户的单页作品集。**单个完整 HTML 文件**，内嵌全部 CSS 与 JS，
-无外部依赖、无构建步骤，双击即可运行。
+面向面试官与潜在客户的作品集。
 
-- 线上地址：<https://uahz.github.io/portfolio/>
+- **主入口**：https://uahz.github.io/
+- **备用地址**：https://uahz.github.io/portfolio/
+- 结构：`index.html` 一页展示全部 19 个项目 → 点卡片跳 `project.html?id=xxx` 看详情
 - 技术栈：原生 HTML + CSS + JS，无框架、无 CDN、无字体文件外链
-- 封面图：内联 SVG data URI，同样零外部依赖
+- 封面：内联 SVG data URI，零外部依赖
 
-## 设计约束
+> 原来的暗色多页站仍保留在主仓库（`work.html` / `404.html` / `assets/`），
+> 但不是入口，仅作归档，避免已发出的链接失效。
+
+## 当前内容约定
+
+| 项 | 值 | 说明 |
+|---|---|---|
+| 姓名 | **汤** | 只写了姓，全名待补 |
+| 邮箱 | `uahz@qq.com` | 纯 `mailto:`，**不放表单**（静态站没有后端，表单只会给假回执） |
+| 社交 | 仅 GitHub `uahz` | Behance / 站酷 / 小红书等真实地址待补后再加 |
+| 在线体验 | 7 个项目有 | 其余按用户要求暂不处理 |
+
+补全姓名或社交链接时：改 `template.html` / `project-template.html` 里对应文本，跑 `python build.py`，再跑 `node deploy-pages.cjs <TOKEN> <repo>`。
+
+## 设计系统
 
 | 项 | 规范 |
 |---|---|
-| 配色 | 主色 `#165DFF`、背景 `#FAFAFA`、正文 `#1D1D1F`、次要文字 `#86868B`，全部收敛到 `:root` 变量 |
-| 字体 | 标题 `Sora`（几何无衬线，有辨识度且非 AI 高频模板字体），正文 `Noto Sans SC`；均为系统 fallback，不加载字体文件 |
-| 布局 | 12 列栅格；Hero 7/5 分栏，主按钮落在右下角；画廊为 Bento 错落网格（跨度 7/5/8/4 交替 + 垂直偏移） |
+| 配色 | 主色 `#165DFF`、背景 `#FAFAFA`、正文 `#1D1D1F`、次要文字 `#86868B`，全部收敛 `:root` |
+| 字体 | 标题 `Sora`（避开 Inter / Space Grotesk），正文 `Noto Sans SC`；系统 fallback，不加载字体文件 |
+| 布局 | 12 列栅格；Hero 7/5 分栏、主按钮在右下角；画廊 Bento 19 卡按 `6n+N` 循环跨度 7/5/8/4 + 垂直偏移 |
 | 圆角 | 统一 12px（`--r`），大容器 20px |
-| 阴影 | 低透明度柔和阴影 `--sh-1/2/3`，无厚重黑影 |
-| 断点 | 375 / 768 / 1200 三档；768 为平板档（两列画廊 + 桌面菜单），375 为移动档（单列 + 汉堡菜单） |
-| 背景 | 极淡径向渐变三层，营造空间深度，无光斑 / 粒子 / 网格纹理 |
-| 动效 | 全站仅一套入场动效（`.reveal` + `animation-delay` 错峰）；hover 仅卡片上浮 4px + 封面 1.06 倍慢速缩放；全部纯 CSS |
+| 阴影 | 低透明度柔和阴影 `--sh-1/2/3` |
+| 断点 | 375 / 768 / 1200；768 平板档两列、767 以下单列 + 汉堡 |
+| 背景 | 三层极淡径向渐变，无光斑 / 粒子 / 网格 |
+| 动效 | 全站唯一一套入场（`.reveal` + `--delay` 错峰）；hover 仅卡片上浮 4px + 封面 1.06 倍；纯 CSS |
 
-## 目录
+## 源码结构
 
 ```
-index.html            ← 交付物：单文件成品，直接双击打开
-template.html         ← 源模板（含 __COVER_xx__ 占位符）
-gen-covers.py         ← 封面 SVG 生成器（几何构成 + 主色点缀）
-build.py              ← 注入封面 data URI → index.html
-check.cjs             ← 浏览器实测（CDP 驱动 Edge，38 项断言）
-shoot.cjs             ← 截图脚本
-deploy-single.cjs     ← GitHub Pages 部署（Git Data API）
+site.css                 ← 唯一设计系统源（构建时内联进两个 HTML）
+template.html             ← 主页结构 + JS
+project-template.html     ← 二级详情页结构 + JS
+export-works.cjs          ← 从 ../个人作品集/assets/js/projects.js 导出 works.json
+works.json                ← 19 个项目数据（自动生成）
+gen-covers.py             ← 19 张几何封面 SVG
+build.py                  ← 注入 CSS / 数据 / 封面 → 产出 index.html + project.html
+
+index.html                ← 交付物：主页（自包含）
+project.html              ← 交付物：二级详情页（自包含）
+
+check.cjs                 ← CDP 浏览器实测（43 项）
+shoot.cjs                 ← 截图
+deploy-pages.cjs          ← GitHub Pages 部署
+deploy-single.cjs         ← 旧的单文件部署脚本（保留）
 ```
 
-## 本地预览
+## 重建
 
 ```bash
-python -m http.server 8920
-# 打开 http://127.0.0.1:8920/index.html
+node export-works.cjs   # 项目有增删时先跑
+python build.py         # 产出两个自包含 HTML
 ```
 
-也可以直接双击 `index.html` —— 没有任何外部依赖，file:// 下也能完整运行。
+`index.html` / `project.html` 各自内嵌 CSS、JS、19 条项目数据和全部封面，
+**双击即可运行**，`file://` 下也完整可用。
 
-## 重新构建
-
-改了 `template.html` 或 `gen-covers.py` 之后：
-
-```bash
-python build.py
-```
-
-`build.py` 会把 `gen-covers.py` 生成的几何封面转成 data URI，注入模板里的
-`__COVER_S1__` … `__COVER_S6__` 占位符，产出最终 `index.html`。
-
-## 替换成自己的内容
+## 替换内容
 
 | 要改什么 | 位置 |
 |---|---|
-| 姓名 / 标题 / 简介 | `template.html` 的 `.hero__title`、`.hero__desc` |
-| 导航项 | `.nav__menu` |
-| 作品数据 | 页面底部 `<script>` 里的 `WORKS` 数组 |
-| 作品封面 | `WORKS` 里的 `img` 字段换成你的图片 URL；或改 `gen-covers.py` 的 `SPECS` 重新生成几何占位图 |
-| 关于我 / 联系方式 | `#about` 与 `#contact` 区块 |
-| 配色 | `:root` 里的 `--c-*` 变量，改一处全站生效 |
-
-`WORKS` 数组每项的字段：`id` / `title` / `cat` / `year` / `img` / `desc` / `tools[]` / `links[]`。
+| 姓名 / Hero 文案 | `template.html` |
+| 邮箱 / 社交 | `template.html` 的 `#contact` |
+| 项目数据 | `../个人作品集/assets/js/projects.js`（唯一数据源）→ 跑 `export-works.cjs` + `build.py` |
+| 作品封面 | `gen-covers.py` 的 `SPECS` / `shapes()`；或把 `works.json` 的 `cover` 换成真实图片 URL |
+| 配色 | `site.css` 的 `:root` 变量，改一处全站生效 |
 
 ## 验收
 
 ```bash
 node check.cjs http://127.0.0.1:8920
+node check.cjs https://uahz.github.io/
 ```
 
-38 项断言，覆盖：渲染完整性、无外部依赖、封面 4:3 比例、Bento 跨度非等宽、
-色值全部走变量、入场动效与错峰 delay、导航滚动态（毛玻璃 + 底线）、
-弹窗三种关闭方式（关闭按钮 / 蒙层 / ESC）、body 滚动锁定与恢复、
-375 / 768 / 1200 三档响应式、**控制台零报错**。
+43 项断言：19 卡片全部渲染且都是跳转链接、无弹窗、无外部依赖、封面 4:3、
+Bento 跨度非等宽、分类筛选与计数回写、详情页各区块与无 id 回退、
+375/768/1200 三档响应式、**控制台零报错**。
+
+> headless Edge 默认 `prefers-reduced-motion: reduce`，脚本用
+> `Emulation.setEmulatedMedia` 模拟普通用户环境，否则测不到入场动效。
 
 ## 部署
 
 ```bash
-node deploy-single.cjs <TOKEN> portfolio main
+node deploy-pages.cjs <TOKEN> uahz.github.io main
+node deploy-pages.cjs <TOKEN> portfolio main
 ```
 
-用 Git Data API（`git/trees` + `git/commits` + `git/refs`）一次提交整棵树，
-绕开 git over HTTPS 的代理阻断。脚本会自动开启 Pages、等待构建并做线上验证。
+用 Git Data API（`git/trees` + `git/commits` + `git/refs`），`base_tree` 保留仓库里已有文件。
+脚本自动等 Pages 构建，并**逐个验响应体前 20 字符是不是 `<!DOCTYPE html>`**。
 
-> **编码约定（踩过坑）**：
-> - `git/trees` 的 `content` 字段要**纯文本** → `fs.readFileSync(file, "utf8")`
-> - Contents API 的 `content` 字段要 **base64** → `Buffer.from(text, "utf8").toString("base64")`
-> - 在字符串上写 `.toString("base64")` 是 **no-op**，看着像编码其实没编码，别这么写
->
-> 若给 `git/trees` 传了 base64，GitHub 会把那串字符当文件内容原样存下：
-> API 返回 200、Pages 显示 built、curl 状态码 200 全部正常，但浏览器打开是一整段
-> base64 乱码。部署后务必用 `check-not-base64.cjs` 或 `curl ... | head -c 20` 验内容。
+### 编码约定（踩过坑）
+
+- `git/trees` 的 `content` 要**纯文本** → `fs.readFileSync(file, "utf8")`
+- Contents API 的 `content` 要 **base64** → `Buffer.from(text, "utf8").toString("base64")`
+- 在字符串上写 `.toString("base64")` 是 **no-op**，看着像编码其实没编码
+
+若给 `git/trees` 传了 base64，GitHub 会把那串字符当文件内容原样存下：
+API 200、Pages built、curl 200 全部正常，但浏览器打开是一整段 base64 乱码。
+**所以部署后必须验响应体内容，不能只验状态码。**
